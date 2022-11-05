@@ -1,12 +1,13 @@
 import React, { Component } from "react";
 //import "react-loader-spinner/dist/loader/css/react-spinner-loader.css";
 import Searchbar from './Searchbar/Searchbar';
-//import Loader from './Loader/Loader';
+import Loader from './Loader/Loader';
 import ImageGallery from './ImageGallery/ImageGallery';
 import Modal from './Modal/Modal';
 import Button from "./Button/Button";
 //import ErrorMessage from "./ErrorMessage/ErrorMessage";
 import Api from 'services/serviceApi';
+import s from './App.module.css';
 
 class App extends Component {
   state = {
@@ -18,6 +19,7 @@ class App extends Component {
     largeImageURL: '',
     showModal: false,
     totalHits: 1,
+    contentLoad: false,
   };
 
   componentDidUpdate(prevProps, prevState) {
@@ -66,16 +68,12 @@ class App extends Component {
   this.setState({ searchQuery, page: 1 });
  };
 
-toggleModal = () => {
-    this.setState({
-      showModal: false,
-    })
-    setTimeout(() => {
-      this.setState({
-        largeImageURL: "",
-      });
-    }, 500);
-    };
+ toggleModal = largeImageURL => {
+  this.setState(({ showModal, bigImage }) => ({
+    showModal: !showModal,
+    bigImage: largeImageURL,
+  }));
+};
 
   handleLoadMore = () => {
     this.setState(prevState => ({
@@ -84,17 +82,17 @@ toggleModal = () => {
   };
 
 render() {
-  const { images, bigImage } = this.state;
- 
- 
+  const { images, bigImage, contentLoad } = this.state; 
 
   return (
-    <div>
+    <div className={s.appDiv}>
        <Searchbar onSubmit={this.handleFormSubmit} />
-        <ImageGallery images={images} toggleModal={this.toggleModal} />
+      <ImageGallery images={images} toggleModal={this.toggleModal} />
        
-       
-        <Modal onClickModal={this.toggleModal} image={bigImage} />
+        {this.state.showModal && (
+            <Modal onClickModal={this.toggleModal} largeImageURL={bigImage} />
+          )}
+         {!contentLoad && <Loader />}
         <Button onClick={this.handleLoadMore} />
          
     </div>

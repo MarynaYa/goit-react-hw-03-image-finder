@@ -1,40 +1,42 @@
-import { Component } from 'react';
-import s from './Modal.module.css';
+import { Overley, Container } from './Modal.styled';
+import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 
-
 export default class Modal extends Component {
-  static propTypes = {
-    onClose: PropTypes.func.isRequired,
-    largeImageURL: PropTypes.string.isRequired,
-  };
-
   componentDidMount() {
-    window.addEventListener("keydown", this.onCloseModal);
-    window.addEventListener("click", this.onCloseModal);
+    window.addEventListener('keydown', this.handleKeyDown);
   }
 
   componentWillUnmount() {
-    window.removeEventListener("keydown", this.onCloseModal);
-    window.removeEventListener("click", this.onCloseModal);
+    window.removeEventListener('keydown', this.handleKeyDown);
   }
 
-  onCloseModal = (evt) => {
-    if (evt.code === "Escape" || evt.target === evt.currentTarget) {
-      this.props.onClose();
+  handleKeyDown = evt => {
+    if (evt.code === 'Escape') {
+      this.props.onClickModal();
+    }
+  };
+
+  handleBackdropClick = evt => {
+    if (evt.currentTarget === evt.target) {
+      this.props.onClickModal();
     }
   };
 
   render() {
     const { largeImageURL } = this.props;
-   
     return (
-      <div className={s.overlay} onClick={this.onCloseModal}>
-        <div className={s.modal}>
+      <Overley onClick={this.handleBackdropClick}>
+        <Container>
           <img src={largeImageURL} alt="" />
-        </div>
-      </div>
+        </Container>
+      </Overley>
+ 
     );
   }
-};
+}
 
+Modal.propTypes = {
+  //image: PropTypes.string.isRequired,
+  onClick: PropTypes.func,
+};
