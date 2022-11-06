@@ -5,9 +5,16 @@ import Loader from './Loader/Loader';
 import ImageGallery from './ImageGallery/ImageGallery';
 import Modal from './Modal/Modal';
 import Button from "./Button/Button";
-//import ErrorMessage from "./ErrorMessage/ErrorMessage";
+import ErrorMessage from "./ErrorMessage/ErrorMessage";
 import Api from 'services/serviceApi';
 import s from './App.module.css';
+
+const Status = {
+  IDLE: 'idle',
+  PENDING: 'pending',
+  RESOLVED: 'resolved',
+  REJECTED: 'rejected',
+};
 
 class App extends Component {
   state = {
@@ -20,6 +27,7 @@ class App extends Component {
     showModal: false,
     totalHits: 1,
     contentLoad: false,
+    status: Status.IDLE,
   };
 
   componentDidUpdate(prevProps, prevState) {
@@ -30,7 +38,7 @@ class App extends Component {
 
     if (prevImages !== nextImages) {
       this.setState({
-        
+        status: Status.PENDING,
         page: 1,
         images: [],
       });
@@ -56,12 +64,12 @@ class App extends Component {
             totalHits: data.totalHits,
             prevState,
             images: [...prevState.images, ...data.hits],
-           
+            status: Status.RESOLVED,
             searchQuery: nextImages,
           };
         });
       })
-      .catch(error => this.setState({ error }));
+      .catch(error => this.setState({ error, status: Status.REJECTED }));
   }
 
  handleFormSubmit = searchQuery => {
@@ -82,8 +90,24 @@ class App extends Component {
   };
 
 render() {
-  const { images, bigImage, contentLoad } = this.state; 
+  const { images, bigImage, status } = this.state; 
 
+  if (status === Status.IDLE) {
+    return (
+      <>
+        <Searchbar onSubmit={this.handleFormSubmit} />
+      </>
+    );
+  }
+  if (status === Status.PENDING) {
+    return <Loader />;
+  }
+
+  if (status === Status.REJECTED) {
+    return <ErrorMessage message="Sorry, nothing was found, please try your search again" />;
+  }
+
+  if (status === Status.RESOLVED) {
   return (
     <div className={s.appDiv}>
        <Searchbar onSubmit={this.handleFormSubmit} />
@@ -92,13 +116,14 @@ render() {
         {this.state.showModal && (
             <Modal onClickModal={this.toggleModal} largeImageURL={bigImage} />
           )}
-         {!contentLoad && <Loader />}
+          {this.state.images.length !==this.state.totalHits && (
+        // {!contentLoad && <Loader />}
         <Button onClick={this.handleLoadMore} />
-         
+          )}
     </div>
   );
 }
 
 };
-
+}
 export default App;
